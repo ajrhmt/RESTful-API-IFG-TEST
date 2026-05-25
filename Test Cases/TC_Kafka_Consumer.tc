@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestCaseEntity>
+   <description>Validate Katalon as Kafka consumer.</description>
+   <name>TC_Kafka_Consumer</name>
+   <tag></tag>
+   <comment></comment>
+   <testCaseGuid>22222222-2222-2222-2222-222222222222</testCaseGuid>
+</TestCaseEntity>

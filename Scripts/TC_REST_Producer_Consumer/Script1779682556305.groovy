@@ -17,28 +17,32 @@ import com.kms.katalon.core.windows.keyword.WindowsBuiltinKeywords as Windows
 import internal.GlobalVariable as GlobalVariable
 import org.openqa.selenium.Keys as Keys
 
-import org.apache.kafka.clients.consumer.*
-import java.time.Duration
-import java.util.Properties
+import static com.kms.katalon.core.webservice.keyword.WSBuiltInKeywords as WS
 
-Properties props = new Properties()
+Map producerPayload = [
+	title : 'Katalon REST producer test',
+	body  : 'Message created by Katalon test automation',
+	userId: 1
+]
 
-props.put("bootstrap.servers", "localhost:9092")
-props.put("group.id", "test-group")
-props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
-props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
-props.put("auto.offset.reset", "earliest")
+def producerResponse = CustomKeywords.'api.RestApiHelper.postJson'(GlobalVariable.REST_BASE_URL, '/posts', producerPayload)
+CustomKeywords.'api.RestApiHelper.verifyStatus'(producerResponse, 201)
 
-KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props)
+Map producerResult = CustomKeywords.'api.RestApiHelper.parseJson'(producerResponse)
+assert producerResult.title == producerPayload.title
+assert producerResult.body == producerPayload.body
+assert producerResult.userId == producerPayload.userId
+assert producerResult.id != null
 
-consumer.subscribe(Arrays.asList("test-topic"))
+KeywordUtil.logInfo("REST producer created data with id: ${producerResult.id}")
 
-println("Waiting for messages...")
+def consumerResponse = CustomKeywords.'api.RestApiHelper.get'(GlobalVariable.REST_BASE_URL, '/posts/1')
+CustomKeywords.'api.RestApiHelper.verifyStatus'(consumerResponse, 200)
 
-def records = consumer.poll(Duration.ofSeconds(10))
+Map consumerResult = CustomKeywords.'api.RestApiHelper.parseJson'(consumerResponse)
+assert consumerResult.id == 1
+assert consumerResult.userId != null
+assert consumerResult.title
+assert consumerResult.body
 
-records.each { record ->
-	println("Message: " + record.value())
-}
-
-consumer.close()
+KeywordUtil.logInfo("REST consumer received data: ${consumerResult}")

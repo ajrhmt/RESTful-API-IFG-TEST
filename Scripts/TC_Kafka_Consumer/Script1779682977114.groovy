@@ -17,10 +17,23 @@ import com.kms.katalon.core.windows.keyword.WindowsBuiltinKeywords as Windows
 import internal.GlobalVariable as GlobalVariable
 import org.openqa.selenium.Keys as Keys
 
-import static com.kms.katalon.core.webservice.keyword.WSBuiltInKeywords as WS
+Map setupMessage = [
+	id       : 'KATALON-KAFKA-' + System.currentTimeMillis(),
+	source   : 'katalon-technical-test',
+	eventType: 'consumer-validation',
+	status   : 'created'
+]
 
-def response = WS.sendRequest(findTestObject('GET_Post'))
+Map message = CustomKeywords.'kafka.KafkaConsumerHelper.consumeJsonMessageFromMockTopic'(
+	GlobalVariable.KAFKA_TOPIC,
+	setupMessage
+)
 
-WS.verifyResponseStatusCode(response, 200)
+assert message != null
+assert message.size() > 0
+assert message.id == setupMessage.id
+assert message.source == setupMessage.source
+assert message.eventType == setupMessage.eventType
+assert message.status == setupMessage.status
 
-println(response.getResponseBodyContent())
+KeywordUtil.logInfo("Kafka consumer received JSON message: ${message}")
